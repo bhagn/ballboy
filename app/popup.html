@@ -1,5 +1,5 @@
 <!doctype html>
-<html>
+<html ng-app="ballBoyPopup" ng-controller="PopupController">
   <head>
     <meta charset="utf-8">
     <!-- build:css styles/popup-vendor.css -->
@@ -10,11 +10,43 @@
     <link href="styles/main.css" rel="stylesheet">
     <!-- endbuild -->
   </head>
-  <body>
-    <h1>'Allo, 'Allo!</h1>
+  <body class="bb-popup">
+
+    <div class="section">
+        <span class="tab"
+                ng-class="{'active': menu.active == 'series'}"
+                ng-click="menu.active = 'series'; showSeries()">
+            Series
+        </span>
+        <span class="tab"
+                ng-class="{'active': menu.active == 'live'}"
+                ng-click="menu.active = 'live'; showLive()">
+            Live
+        </span>
+    </div>
+
+    <div class="bb-popup-body">
+
+        <div ng-if="menu.active == 'series'">
+            <bb-series ng-repeat="s in series track by s.id" data="s"></bb-series>
+            <div ng-if="series.length === 0">
+                Currently there are no series actively happening. Take a break!
+            </div>
+        </div>
+
+        <div ng-if="menu.active == 'live'">
+            <bb-live-match ng-repeat="match in liveMatches track by match.id" data="match"></bb-live-match>
+            <div ng-if="liveMatches.length === 0">
+                Currently there are no matches happening. Take a break!
+            </div>
+        </div>
+    </div>
 
     <!-- build:js scripts/popup-vendor.js -->
     <!-- bower:js -->
+    <script src="bower_components/angularjs/angular.js"></script>
+    <script src="bower_components/lodash/lodash.js"></script>
+    <script src="bower_components/momentjs/moment.js"></script>
     <!-- endbower -->
     <!-- endbuild -->
 

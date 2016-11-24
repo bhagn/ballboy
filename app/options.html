@@ -1,5 +1,5 @@
 <!doctype html>
-<html>
+<html ng-app="ballboyOptions" ng-controller="OptionsController">
   <head>
     <!-- build:css styles/options-vendor.css -->
     <!-- bower:css -->
@@ -10,15 +10,74 @@
     <!-- endbuild -->
   </head>
   <body>
-    <h1>'Allo, 'Allo!</h1>
+    <!-- <h2 class="header">Settings</h2> -->
+    <div class="bb-form">
+      <div class="section">General</div>
+
+      <div class="form-control">
+        <label>Notification</label>
+        <div class="value">
+          <span><input type="radio" name="notification" value="system"
+              ng-model="options.notification"
+              ng-change="saveSettings()" />
+            System
+          </span>
+          <span><input type="radio" name="notification" value="web"
+              ng-model="options.notification" />
+            Webpage Injection
+          </span>
+        </div>
+      </div>
+
+      <div class="form-control">
+        <label>Favourite Team(s)</label>
+        <div class="value">
+          <input class="bb-input" type="text" name="favTeam"
+              ng-model="options.favouriteTeam"
+              ng-change="saveSettings()" />
+        </div>
+      </div>
+
+      <div class="section">Refresh Intervals</div>
+
+      <div class="form-control">
+        <label>Tests</label>
+        <div class="value">
+          <input class="bb-input" type="number" name="interval" ng-model="options.testInterval"
+              ng-change="saveSettings()" />
+        </div>
+      </div>
+
+      <div class="form-control">
+        <label>ODIs</label>
+        <div class="value">
+          <input class="bb-input" type="number" name="interval" ng-model="options.odiInterval"
+              ng-change="saveSettings()" />
+        </div>
+      </div>
+
+      <div class="form-control">
+        <label>T20s</label>
+        <div class="value">
+          <input class="bb-input" type="number" name="interval" ng-model="options.t20Interval"
+              ng-change="saveSettings()" />
+        </div>
+      </div>
+
+
+    </div>
 
     <!-- build:js scripts/options-vendor.js -->
     <!-- bower:js -->
+    <script src="bower_components/angularjs/angular.js"></script>
+    <script src="bower_components/lodash/lodash.js"></script>
+    <script src="bower_components/momentjs/moment.js"></script>
     <!-- endbower -->
     <!-- endbuild -->
 
     <!-- build:js scripts/options.js -->
     <script src="scripts/options.js"></script>
     <!-- endbuild -->
+
   </body>
 </html>

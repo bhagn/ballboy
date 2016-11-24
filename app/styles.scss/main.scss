@@ -1,4 +1,91 @@
-$padding: 20px;
+$increment: 5px;
+$label-color: #FCE38A;
+$header: #F38181;
+$bottom-color: #95E1D3;
+$section: #53435B;
+
 body {
-  padding: $padding;
+  padding: 0;
+  margin: 0;
+
+  .header {
+    background: $header;
+    margin: 0;
+    padding: $increment * 2;
+    font-size: $increment * 4;
+  }
+
+  .section {
+    background: $section;
+    margin: 0;
+    padding: ($increment * 2) - 2px;
+    color: #fff;
+    display: flex;
+    justify-content: space-around;
+
+    span.tab {
+      cursor: pointer;
+
+      &.active {
+        border-bottom: 2px solid #fff;
+      }
+    }
+  }
+
+  .bb-form {
+
+    .form-control {
+      margin: 0;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+
+      label {
+        width: 150px;
+        background: $label-color;
+        font-size: $increment * 3;
+        text-align: right;
+        padding-top: $increment * 2;
+        padding-bottom: $increment * 2;
+        padding-right: $increment;
+      }
+
+      .value {
+        width: calc(100% - 160px);
+        display: flex;
+        justify-content: space-around;
+
+        .bb-input {
+          width: 90%;
+        }
+      }
+    }
+  }
+
+  &.bb-popup {
+    width: 250px;
+
+    .bb-popup-body {
+      margin: $increment;
+
+      .series {
+        border-radius: $increment;
+        text-align: center;
+        border-bottom: $increment solid $bottom-color;
+
+        .series-header {
+          padding: $increment * 2;
+          font-size: $increment * 3;
+          background: $header;
+          border-top-left-radius: $increment;
+          border-top-right-radius: $increment;
+        }
+
+        .series-date {
+          padding: $increment $increment * 2;
+          background: $label-color;
+        }
+      }
+    }
+  }
 }

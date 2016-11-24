@@ -11,6 +11,8 @@
   "background": {
     "scripts": [
       "scripts/chromereload.js",
+      "bower_components/lodash/dist/lodash.min.js",
+      "bower_components/momentjs/min/moment.min.js",
       "scripts/background.js"
     ]
   },
@@ -19,6 +21,7 @@
     "notifications",
     "storage",
     "webRequest",
+    "alarms",
     "*://*.google.com/",
     "*://*.bcci.tv/*",
     "*://www.bcci.tv/*"
@@ -29,8 +32,10 @@
   },
   "browser_action": {
     "default_icon": {
-      "19": "images/icon-19.png",
-      "38": "images/icon-38.png"
+      "16": "images/icon-16.png",
+      "32": "images/icon-32.png",
+      "48": "images/icon-48.png",
+      "128": "images/icon-150.png"
     },
     "default_title": "BallBoy",
     "default_popup": "popup.html"
