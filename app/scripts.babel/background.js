@@ -1,6 +1,10 @@
 'use strict';
 (function() {
   var series = [];
+  var teams = [];
+  var live = [];
+  var favTeams = [];
+
   var URL = {
     INDEX: 'http://www.bcci.tv/',
     SCHEDULE: 'http://domesticdata.bcci.tv/live/seriesId/matchSchedule2.js'
@@ -30,7 +34,7 @@
   function onSeriesDetailsLoad(detail) {
     detail = detail.replace('onMatchSchedule(', '').replace(');', '');
     detail = JSON.parse(detail);
-    console.log('loading details')
+    console.log('loading details');
 
     chrome.storage.sync.get('series', data => {
       var series = data.series;
@@ -49,6 +53,29 @@
           series[toEdit].active = false;
         } else {
           series[toEdit].active = true;
+          _.forEach(detail.schedule, d => {
+            var team1 = null;
+            var team2 = null;
+
+            if (d.team1.team.fullName != 'TBD') {
+              var team1 = { series: detail.tournamentId.tournamentLabel,
+                  name: d.team1.team.fullName, abbr: d.team1.team.abbreviation };
+
+              if (_.findIndex(teams, team1) === -1) {
+                teams.push(team1);
+              }
+            }
+
+            if (d.team2.team.fullName != 'TBD') {
+              var team2 = { series: detail.tournamentId.tournamentLabel,
+                  name: d.team2.team.fullName, abbr: d.team2.team.abbreviation };
+
+              if (_.findIndex(teams, team2) === -1) {
+                teams.push(team2);
+              }
+            }
+
+          });
         }
 
         chrome.storage.sync.set({series: series});
@@ -61,6 +88,10 @@
 
   function getSeriesDetails() {
     if (series.length === 0) {
+      if (teams.length !== 0) {
+        chrome.storage.sync.set({teams: _.sortBy(_.compact(teams), 'name')});
+      }
+
       return;
     }
 
@@ -83,7 +114,10 @@
       series: series
     });
 
-    getSeriesDetails(series);
+    chrome.storage.sync.get('favTeams', data => {
+      favTeams = data.favTeams;
+      getSeriesDetails(series);
+    });
   }
 
   function getSeries() {

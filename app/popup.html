@@ -9,10 +9,16 @@
     <!-- build:css styles/main.css -->
     <link href="styles/main.css" rel="stylesheet">
     <!-- endbuild -->
+    <link href="bower_components/font-awesome/css/font-awesome.min.css" rel="stylesheet">
   </head>
   <body class="bb-popup">
 
     <div class="section">
+        <span class="tab"
+                ng-class="{'active': menu.active == 'teams'}"
+                ng-click="menu.active = 'teams'; showTeams()">
+            Teams
+        </span>
         <span class="tab"
                 ng-class="{'active': menu.active == 'series'}"
                 ng-click="menu.active = 'series'; showSeries()">
@@ -26,6 +32,18 @@
     </div>
 
     <div class="bb-popup-body">
+        <div ng-if="menu.active == 'teams'" class="teams">
+            <div ng-repeat="(key, value) in teams">
+                <div class="sub-header" ng-bind="key"></div>
+                <div class="item" ng-repeat="team in value" ng-click="toggleFavouriteTeam(team.name)" title="Toggle Favourite">
+                    <span ng-bind="::team.name"></span> (<span ng-bind="::team.abbr"></span>)
+                    <span class="pull-right fa"
+                            ng-class="{'fa-heart-o': favTeams.indexOf(team.name) == -1, 'fa-heart': favTeams.indexOf(team.name) != -1}">
+
+                    </span>
+                </div>
+            </div>
+        </div>
 
         <div ng-if="menu.active == 'series'">
             <bb-series ng-repeat="s in series track by s.id" data="s"></bb-series>

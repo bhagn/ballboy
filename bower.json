@@ -5,7 +5,8 @@
   "dependencies": {
     "angularjs": "1.5.8",
     "lodash": "4.17.2",
-    "momentjs": "2.17.0"
+    "momentjs": "2.17.0",
+    "font-awesome": "4.7.0"
   },
   "devDependencies": {}
 }
