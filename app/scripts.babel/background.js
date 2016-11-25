@@ -150,7 +150,7 @@
     });
 
     chrome.storage.sync.get('favTeams', data => {
-      favTeams = data.favTeams;
+      favTeams = data.favTeams || [];
       getSeriesDetails(series);
     });
   }
