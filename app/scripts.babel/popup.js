@@ -10,9 +10,29 @@
     </div>
   `;
 
-  function SeriesController() {
-    var vm = this;
+  var liveMatchTemplate = `
+    <div class="live-match">
+      <div class="sub-header" ng-bind="ctrl.data.desc"></div>
+      <div class="result" ng-if="ctrl.data.status === 'C'" ng-bind="::ctrl.data.result.text">
+      </div>
+      <div ng-if="ctrl.data.status !== 'C'" class="scorecard">
+        N/A
+      </div>
+    </div>
+  `;
+
+  function LiveMatchDirective() {
+    return {
+      scope: {
+        data: '<'
+      },
+      template: liveMatchTemplate,
+      controller: function() {},
+      controllerAs: 'ctrl',
+      bindToController: true
+    };
   }
+
 
   function SeriesDirective() {
     return {
@@ -20,7 +40,7 @@
         data: '<'
       },
       template: seriesTemplate,
-      controller: SeriesController,
+      controller: function() {},
       controllerAs: 'ctrl',
       bindToController: true
     };
@@ -67,11 +87,23 @@
 
       $scope.$digest();
     });
+
+    chrome.storage.sync.get('live', data => {
+      $scope.liveMatches = data.live;
+      if (data.live.length > 0) {
+        $scope.menu.active = 'live';
+      } else {
+        $scope.menu.active = 'series';
+      }
+
+      $scope.$digest();
+    });
   }
 
   Controller.$inject = ['$scope'];
 
   angular.module('ballBoyPopup', [])
     .controller('PopupController', Controller)
-    .directive('bbSeries', SeriesDirective);
+    .directive('bbSeries', SeriesDirective)
+    .directive('bbLiveMatch', LiveMatchDirective);
 })();

@@ -110,6 +110,22 @@ body {
           background: $label-color;
         }
       }
+
+      .live-match {
+        .sub-header {
+          padding: $increment * 2;
+          font-size: $increment * 3;
+          background: $bottom-color;
+          border-top-left-radius: $increment;
+          border-top-right-radius: $increment;
+        }
+
+        .result {
+          padding: $increment $increment * 2;
+          background: $label-color;
+          border-bottom: $increment solid $header;
+        }
+      }
     }
   }
 }

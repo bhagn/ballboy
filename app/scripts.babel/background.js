@@ -31,10 +31,43 @@
 
   }
 
+  function populateLiveMatches(matches) {
+    var today = moment().startOf('date');
+    matches.forEach(match => {
+      var team1 = match.team1.team.fullName;
+      var team2 = match.team2.team.fullName;
+
+      if (favTeams.indexOf(team1) === -1 && favTeams.indexOf(team2) === -1) {
+        return;
+      }
+
+      var startDate = moment(match.matchDate).startOf('date');
+      var noOfDays = 1;
+
+      if (_.startsWith(match.matchType, 'Multi Day')) {
+        var noOfDays = parseInt(match.matchType.match(/\d/)[0]);
+      }
+
+      var endDate = moment(match.matchDate).add(noOfDays, 'days').endOf('date').add(2, 'days');
+      if (startDate <= today && today <= endDate) {
+        console.debug('adding live match', match);
+        var liveMatch = { id: match.matchId.name, status: match.matchState, desc: team1 + ' vs ' + team2 };
+        if (match.matchStatus) {
+          liveMatch.result = {
+            code: match.matchStatus.outcome,
+            text: match.matchStatus.text
+          };
+        }
+
+        live.push(liveMatch);
+      }
+    });
+  }
+
   function onSeriesDetailsLoad(detail) {
     detail = detail.replace('onMatchSchedule(', '').replace(');', '');
     detail = JSON.parse(detail);
-    console.log('loading details');
+    console.debug('loading details', detail.tournamentId.tournamentLabel);
 
     chrome.storage.sync.get('series', data => {
       var series = data.series;
@@ -74,8 +107,9 @@
                 teams.push(team2);
               }
             }
-
           });
+
+          populateLiveMatches(detail.schedule);
         }
 
         chrome.storage.sync.set({series: series});
@@ -90,6 +124,7 @@
     if (series.length === 0) {
       if (teams.length !== 0) {
         chrome.storage.sync.set({teams: _.sortBy(_.compact(teams), 'name')});
+        chrome.storage.sync.set({live: live});
       }
 
       return;
