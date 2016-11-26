@@ -14,29 +14,31 @@
   <body class="bb-popup">
 
     <div class="section">
-        <span class="tab"
+        <div class="tab"
                 ng-class="{'active': menu.active == 'teams'}"
                 ng-click="menu.active = 'teams'; showTeams()">
             Teams
-        </span>
-        <span class="tab"
+        </div>
+        <div class="tab"
                 ng-class="{'active': menu.active == 'series'}"
                 ng-click="menu.active = 'series'; showSeries()">
             Series
-        </span>
-        <span class="tab"
+        </div>
+        <div class="tab"
                 ng-class="{'active': menu.active == 'live'}"
                 ng-click="menu.active = 'live'; showLive()">
             Live
-        </span>
+        </div>
+
     </div>
+    <div class="tab-indicator {{menu.active}}"></div>
 
     <div class="bb-popup-body">
         <div ng-if="menu.active == 'teams'" class="teams">
             <div ng-repeat="(key, value) in teams">
-                <div class="sub-header" ng-bind="key"></div>
+
                 <div class="item" ng-repeat="team in value" ng-click="toggleFavouriteTeam(team.name)" title="Toggle Favourite">
-                    <span ng-bind="::team.name"></span> (<span ng-bind="::team.abbr"></span>)
+                    <span ng-bind="::team.name"></span> <small ng-bind="::team.abbr"></small>
                     <span class="pull-right fa"
                             ng-class="{'fa-heart-o': favTeams.indexOf(team.name) == -1, 'fa-heart': favTeams.indexOf(team.name) != -1}">
 
@@ -47,7 +49,7 @@
 
         <div ng-if="menu.active == 'series'">
             <bb-series ng-repeat="s in series track by s.id" data="s"></bb-series>
-            <div ng-if="series.length === 0">
+            <div ng-if="series.length === 0" class="series">
                 Currently there are no series actively happening. Take a break!
             </div>
         </div>

@@ -1,14 +1,18 @@
 'use strict';
+
 (function() {
   var series = [];
   var teams = [];
   var live = [];
   var favTeams = [];
+  var port = null;
 
   var URL = {
     INDEX: 'http://www.bcci.tv/',
     SCHEDULE: 'http://domesticdata.bcci.tv/live/seriesId/matchSchedule2.js'
   };
+
+
 
   function Response(callback) {
     // TODO: error handling
@@ -125,6 +129,14 @@
       if (teams.length !== 0) {
         chrome.storage.sync.set({teams: _.sortBy(_.compact(teams), 'name')});
         chrome.storage.sync.set({live: live});
+
+        if (live.length > 0) {
+          chrome.browserAction.setBadgeText({text: 'live'});
+        }
+
+        if (port) {
+          port.postMessage('reload-view');
+        }
       }
 
       return;
@@ -159,11 +171,32 @@
     xhrGET(URL.INDEX, onSeriesLoad);
   }
 
+  function init() {
+    series = [];
+    teams = [];
+    live = [];
+    favTeams = [];
+    chrome.alarms.clearAll(getSeries);
+  }
+
   chrome.runtime.onInstalled.addListener(details => {
     console.log('previousVersion', details.previousVersion);
-    chrome.alarms.clearAll(getSeries);
+    init();
   });
 
-  chrome.browserAction.setBadgeText({text: 'live'});
+  chrome.runtime.onConnect.addListener(p => {
+    port = p;
+    console.log('connected...');
+    port.onMessage.addListener(msg => {
+      console.log('got msg', msg);
+      if (msg === 'reload-db') {
+        init();
+      }
+    });
+    port.onDisconnect.addListener(() => {
+      port = null;
+    });
+  });
+
 
 })();

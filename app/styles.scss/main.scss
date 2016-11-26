@@ -5,31 +5,57 @@ $bottom-color: #95E1D3;
 $item-background: #EAFFD0;
 $section: #53435B;
 
+$primary: #454552;
+$primary-alt: #e85a71;
+$secondary: #4ea1d3;
+$secondary-alt: #d8e9ef;
+
+$popup-width: 250px;
+
 body {
   padding: 0;
   margin: 0;
 
   .header {
-    background: $header;
+    background: $primary;
     margin: 0;
     padding: $increment * 2;
     font-size: $increment * 4;
   }
 
   .section {
-    background: $section;
+    background: $primary;
     margin: 0;
-    padding: ($increment * 2) - 2px;
+    padding: ($increment * 2);
     color: #fff;
     display: flex;
     justify-content: space-around;
 
-    span.tab {
+    .tab {
       cursor: pointer;
+      text-align: center;
+    }
+  }
 
-      &.active {
-        border-bottom: 2px solid #fff;
-      }
+  .tab-indicator {
+    position: relative;
+    margin-top: -4px;
+    border: 2px solid $primary-alt;
+    width: $popup-width/3;
+    left: 0;
+
+    transition: all 0.2s ease-out;
+
+    &.teams {
+      left: 0;
+    }
+
+    &.series {
+      left: $popup-width/3;
+    }
+
+    &.live {
+      left: $popup-width - $popup-width/3;
     }
   }
 
@@ -64,6 +90,8 @@ body {
   }
 
   &.bb-popup {
+    margin: 0;
+    padding: 0;
     width: 250px;
 
     .bb-popup-body {
@@ -73,7 +101,7 @@ body {
         .sub-header {
           padding: $increment * 2;
           font-size: $increment * 3;
-          background: $bottom-color;
+          background: $secondary;
           border-top-left-radius: $increment;
           border-top-right-radius: $increment;
         }
@@ -81,49 +109,59 @@ body {
         .item {
           padding: $increment;
           cursor: pointer;
+          border-bottom: 1px solid $secondary-alt;
 
-          &:nth-child(odd) {
-            background: $item-background;
+          small {
+            color: darken($secondary-alt, 20%);
           }
 
           .fa {
-            color: $header;
+            color: $primary-alt;
           }
         }
       }
 
-      .series {
-        border-radius: $increment;
-        text-align: center;
-        border-bottom: $increment solid $bottom-color;
+      .item {
+        padding: $increment * 3 $increment * 2;
+        border-bottom: 1px solid $secondary-alt;
+        cursor: pointer;
 
-        .series-header {
-          padding: $increment * 2;
-          font-size: $increment * 3;
-          background: $header;
-          border-top-left-radius: $increment;
-          border-top-right-radius: $increment;
+        &:last-of-type {
+          border-bottom: none;
         }
 
-        .series-date {
+        &:hover {
+          background: lighten($secondary-alt, 5%);
+        }
+
+        .item-header {
+          font-size: $increment * 4;
+        }
+
+        .item-tag {
+          font-size: $increment * 2;
+          color: #fff;
+          background: $primary-alt;
+          display: inline-block;
           padding: $increment $increment * 2;
-          background: $label-color;
         }
       }
 
-      .live-match {
-        .sub-header {
-          padding: $increment * 2;
-          font-size: $increment * 3;
-          background: $bottom-color;
-          border-top-left-radius: $increment;
-          border-top-right-radius: $increment;
+
+      .item.live-match {
+        &.done {
+          .item-header {
+            color: $primary;
+          }
+
+          .result {
+            color: $primary-alt;
+          }
         }
 
-        .result {
-          padding: $increment $increment * 2;
-          background: $label-color;
-          border-bottom: $increment solid $header;
+        .item-header {
+          font-size: $increment * 3;
+          color: $primary-alt;
         }
       }
     }
