@@ -24,7 +24,8 @@
     "alarms",
     "*://*.google.com/",
     "*://*.bcci.tv/*",
-    "*://www.bcci.tv/*"
+    "*://www.bcci.tv/*",
+    "*://*.pulselive.com/*"
   ],
   "options_ui": {
     "page": "options.html",

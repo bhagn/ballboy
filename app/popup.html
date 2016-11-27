@@ -36,7 +36,7 @@
     <div class="bb-popup-body">
         <div ng-if="menu.active == 'teams'" class="teams">
             <div ng-repeat="(key, value) in teams">
-
+                <div class="section secondary" ng-bind="::key"></div>
                 <div class="item" ng-repeat="team in value" ng-click="toggleFavouriteTeam(team.name)" title="Toggle Favourite">
                     <span ng-bind="::team.name"></span> <small ng-bind="::team.abbr"></small>
                     <span class="pull-right fa"
@@ -56,8 +56,11 @@
 
         <div ng-if="menu.active == 'live'">
             <bb-live-match ng-repeat="match in liveMatches track by match.id" data="match"></bb-live-match>
-            <div ng-if="liveMatches.length === 0">
+            <div ng-if="liveMatches.length === 0 && favTeams.length !== 0">
                 Currently there are no matches happening. Take a break!
+            </div>
+            <div ng-if="favTeams.length === 0">
+                Please select one or more favourite teams to see live scores of matches involving your teams.
             </div>
         </div>
     </div>

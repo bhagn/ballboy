@@ -6,13 +6,17 @@
   var live = [];
   var favTeams = [];
   var port = null;
+  var liveScores = [];
 
   var URL = {
     INDEX: 'http://www.bcci.tv/',
-    SCHEDULE: 'http://domesticdata.bcci.tv/live/seriesId/matchSchedule2.js'
+    SCHEDULE: 'http://domesticdata.bcci.tv/live/seriesId/matchSchedule2.js',
+    DOM_LIVE: 'http://domesticdata.bcci.tv/live/seriesId/matchId/scoring.js',
+    INT_SCHEDULE: 'http://dynamic.pulselive.com/dynamic/data/core/cricket/2012/seriesId/matchSchedule2.js',
+    INT_LIVE: 'http://dynamic.pulselive.com/dynamic/data/core/cricket/2012/seriesId/matchId/scoring.js'
   };
 
-
+  var iconUrl = chrome.extension.getURL('images/icon-48.png');
 
   function Response(callback) {
     // TODO: error handling
@@ -31,11 +35,99 @@
     xhr.send();
   }
 
+  function parseAndSetLiveScore(score) {
+    score = JSON.parse(score.replace('onScoring(', '').replace(');', ''));
+    chrome.storage.sync.get('live', data => {
+      var matches = data.live;
+      var toEdit = _.findIndex(matches, {id: score.matchId.name});
+
+      if (toEdit === -1) {
+        console.warn('couldn\'t find the live match', score.matchId.name, matches);
+        return updateLiveScores();
+      }
+
+      var data = {
+        summary: score.matchInfo.matchSummary,
+      };
+
+      var notes = [];
+      _.forEach(score.matchInfo.additionalInfo, (value, key) => {
+        if (_.startsWith(key, 'notes')) {
+          notes.push({
+            id: parseInt(key.replace('notes.', '').replace(/\./g, '')),
+            value: value
+          });
+        }
+      });
+
+      notes = notes.sort(function(a, b) {
+        return b.id - a.id;
+      });
+      data.notes = notes[0].value;
+
+      if (matches[toEdit].data && matches[toEdit].data.notes != data.notes) {
+        chrome.notifications.create(score.matchId.name, {
+          type: 'basic',
+          title: score.matchInfo.tournamentLabel + '(' + score.matchInfo.description + ')',
+          message: data.notes,
+          iconUrl: 'images/icon-48.png'
+        });
+      }
+
+    });
+  }
+
+  function updateLiveScores() {
+    if (liveScores.length === 0) {
+      return;
+    }
+
+    var match = liveScores.pop();
+
+    if (match.status === 'L') {
+      xhrGET(match.url, parseAndSetLiveScore);
+    } else {
+      console.log('Match not live: ', match.id, 'skipping refresh');
+      updateLiveScores();
+    }
+  }
+
+  function getLiveScores() {
+    liveScores = [];
+    chrome.storage.sync.get('live', data => {
+      liveScores = data.live;
+
+      if (liveScores.length === 0) {
+        init();  // clear all
+      }
+      updateLiveScores();
+    });
+  }
+
   function setUpAlarms() {
+    chrome.storage.sync.get('live', data => {
+      if (data.live.length === 0) {
+        console.log('skipping adding alarm, no live matches');
+        return;
+      }
+
+      console.log('Adding job to refresh every 15 minutes');
+
+      chrome.alarms.create('liveScores', {
+        periodInMinutes: 15
+      });
+
+      chrome.alarms.onAlarm.addListener(alarm => {
+        console.log('Alarm triggered', alarm);
+        if (alarm.name == 'liveScores') {
+          getLiveScores();
+        }
+      });
+    })
 
   }
 
-  function populateLiveMatches(matches) {
+  function populateLiveMatches(matches, seriesId, isIntMatch) {
     var today = moment().startOf('date');
     matches.forEach(match => {
       var team1 = match.team1.team.fullName;
@@ -49,13 +141,22 @@
       var noOfDays = 1;
 
       if (_.startsWith(match.matchType, 'Multi Day')) {
-        var noOfDays = parseInt(match.matchType.match(/\d/)[0]);
+        noOfDays = parseInt(match.matchType.match(/\d/)[0]);
+      } else if (match.matchType.toLowerCase() == 'test') {
+        noOfDays = 5;
       }
 
       var endDate = moment(match.matchDate).add(noOfDays, 'days').endOf('date').add(2, 'days');
       if (startDate <= today && today <= endDate) {
         console.debug('adding live match', match);
         var liveMatch = { id: match.matchId.name, status: match.matchState, desc: team1 + ' vs ' + team2 };
+
+        if (isIntMatch) {
+          liveMatch.url = URL.INT_LIVE.replace('seriesId', seriesId).replace('matchId', match.matchId.name);
+        } else {
+          liveMatch.url = URL.DOM_LIVE.replace('seriesId', seriesId).replace('matchId', match.matchId.name);
+        }
+
         if (match.matchStatus) {
           liveMatch.result = {
             code: match.matchStatus.outcome,
@@ -64,6 +165,7 @@
         }
 
         live.push(liveMatch);
+        console.log('LIVE: ', liveMatch);
       }
     });
   }
@@ -82,7 +184,7 @@
         var end = moment(_.last(detail.schedule).matchDate);
         var today = moment();
 
-        series[toEdit].label = detail.tournamentId.tournamentLabel;
+        series[toEdit].label = detail.tournamentId.tournamentLabel || _.startCase(detail.tournamentId.name);
         series[toEdit].id = detail.tournamentId.id;
         series[toEdit].start = start.format('MMM Do');
         series[toEdit].end = end.format('MMM Do');
@@ -95,7 +197,7 @@
             var team2 = null;
 
             if (d.team1.team.fullName != 'TBD') {
-              var team1 = { series: detail.tournamentId.tournamentLabel,
+              var team1 = { series: series[toEdit].label, int: series[toEdit].int,
                   name: d.team1.team.fullName, abbr: d.team1.team.abbreviation };
 
               if (_.findIndex(teams, team1) === -1) {
@@ -104,7 +206,7 @@
             }
 
             if (d.team2.team.fullName != 'TBD') {
-              var team2 = { series: detail.tournamentId.tournamentLabel,
+              var team2 = { series: series[toEdit].label, int: series[toEdit].int,
                   name: d.team2.team.fullName, abbr: d.team2.team.abbreviation };
 
               if (_.findIndex(teams, team2) === -1) {
@@ -113,7 +215,7 @@
             }
           });
 
-          populateLiveMatches(detail.schedule);
+          populateLiveMatches(detail.schedule, series[toEdit].name, series[toEdit].int);
         }
 
         chrome.storage.sync.set({series: series});
@@ -128,7 +230,10 @@
     if (series.length === 0) {
       if (teams.length !== 0) {
         chrome.storage.sync.set({teams: _.sortBy(_.compact(teams), 'name')});
-        chrome.storage.sync.set({live: live});
+        chrome.storage.sync.set({live: live}, () => {
+          setUpAlarms();
+          getLiveScores();
+        });
 
         if (live.length > 0) {
           chrome.browserAction.setBadgeText({text: 'live'});
@@ -143,18 +248,26 @@
     }
 
     var s = series.pop();
-    var url = URL.SCHEDULE.replace('seriesId', s.name);
+    var url = s.url;
     xhrGET(url, onSeriesDetailsLoad);
   }
 
   function onSeriesLoad(homePage) {
     var div = document.createElement('div');
     div.innerHTML = homePage;
+    series = [];
 
-    series = div.querySelector('[data-tab="domestic"]').getAttribute('data-dom-season').split(', ');
+    var intSeries = div.querySelector('[data-season]').getAttribute('data-season').split(', ');
+    intSeries.forEach(s => {
+      series.push( { name: s, url: URL.INT_SCHEDULE.replace('seriesId', s), int: true });
+    });
 
-    series = _.map(series, name => {
-      return { name: name };
+    var domSeries =  div.querySelector('[data-tab="domestic"]').getAttribute('data-int-other-season');
+    domSeries += ', ' + div.querySelector('[data-tab="domestic"]').getAttribute('data-dom-season');
+    domSeries = domSeries.split(', ');
+
+    domSeries.forEach(s => {
+      series.push( { name: s, url: URL.SCHEDULE.replace('seriesId', s)});
     });
 
     chrome.storage.sync.set({

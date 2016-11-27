@@ -17,24 +17,11 @@
       <div class="form-control">
         <label>Notification</label>
         <div class="value">
-          <span><input type="radio" name="notification" value="system"
+          <span><input type="checkbox" name="notification" value="system"
               ng-model="options.notification"
               ng-change="saveSettings()" />
             System
           </span>
-          <span><input type="radio" name="notification" value="web"
-              ng-model="options.notification" />
-            Webpage Injection
-          </span>
-        </div>
-      </div>
-
-      <div class="form-control">
-        <label>Favourite Team(s)</label>
-        <div class="value">
-          <input class="bb-input" type="text" name="favTeam"
-              ng-model="options.favouriteTeam"
-              ng-change="saveSettings()" />
         </div>
       </div>
 

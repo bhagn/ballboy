@@ -87,7 +87,9 @@
       });
 
       chrome.storage.sync.get('teams', data => {
-        $scope.teams = _.groupBy(data.teams, 'series');
+        $scope.teams = _.groupBy(data.teams, t => {
+          return t.int ? 'International' : 'Domestic';
+        });
         $scope.$digest();
       });
 

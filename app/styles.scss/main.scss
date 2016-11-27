@@ -1,16 +1,12 @@
 $increment: 5px;
-$label-color: #FCE38A;
-$header: #F38181;
-$bottom-color: #95E1D3;
-$item-background: #EAFFD0;
-$section: #53435B;
+$popup-width: 250px;
 
 $primary: #454552;
 $primary-alt: #e85a71;
 $secondary: #4ea1d3;
 $secondary-alt: #d8e9ef;
+$label-color: #FCE38A;
 
-$popup-width: 250px;
 
 body {
   padding: 0;
@@ -26,10 +22,17 @@ body {
   .section {
     background: $primary;
     margin: 0;
-    padding: ($increment * 2);
+    padding: $increment * 2;
     color: #fff;
     display: flex;
     justify-content: space-around;
+
+    &.secondary {
+      background: $secondary;
+      color: $secondary-alt;
+      padding: $increment;
+      justify-content: flex-start;
+    }
 
     .tab {
       cursor: pointer;
@@ -69,7 +72,8 @@ body {
 
       label {
         width: 150px;
-        background: $label-color;
+        background: $primary-alt;
+        color: #fff;
         font-size: $increment * 3;
         text-align: right;
         padding-top: $increment * 2;
@@ -128,6 +132,7 @@ body {
 
         &:last-of-type {
           border-bottom: none;
+          margin-bottom: $increment * 2;
         }
 
         &:hover {
@@ -143,7 +148,8 @@ body {
           color: #fff;
           background: $primary-alt;
           display: inline-block;
-          padding: $increment $increment * 2;
+          padding: $increment/2 $increment * 2;
+          margin-top: $increment;
         }
       }
 
