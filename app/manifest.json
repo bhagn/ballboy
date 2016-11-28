@@ -42,6 +42,11 @@
     "default_popup": "popup.html"
   },
   "web_accessible_resources": [
-    "images/icon-48.png"
+    "images/icon-48.png",
+    "bower_components/font-awesome/css/font-awesome.min.css",
+    "bower_components/font-awesome/fonts/fontawesome-webfont.svg",
+    "bower_components/font-awesome/fonts/fontawesome-webfont.eot",
+    "bower_components/font-awesome/fonts/fontawesome-webfont.ttf",
+    "bower_components/font-awesome/fonts/FontAwesome.otf"
   ]
 }

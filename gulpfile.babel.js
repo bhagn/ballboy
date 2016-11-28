@@ -11,6 +11,8 @@ gulp.task('extras', () => {
   return gulp.src([
     'app/*.*',
     'app/_locales/**',
+    'app/bower_components/font-awesome/css/*.min.css',
+    'app/bower_components/font-awesome/fonts/**',
     '!app/scripts.babel',
     '!app/*.json',
     '!app/*.html',

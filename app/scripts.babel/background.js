@@ -167,10 +167,6 @@
     liveScores = [];
     chrome.storage.sync.get('live', data => {
       liveScores = data.live;
-
-      if (liveScores.length === 0) {
-        init();  // clear all
-      }
       updateLiveScores();
     });
   }
@@ -194,8 +190,7 @@
           getLiveScores();
         }
       });
-    })
-
+    });
   }
 
   function populateLiveMatches(matches, seriesId, isIntMatch) {
@@ -365,6 +360,10 @@
 
   chrome.runtime.onInstalled.addListener(details => {
     console.log('previousVersion', details.previousVersion);
+    init();
+  });
+
+  chrome.runtime.onStartup.addListener(() => {
     init();
   });
 

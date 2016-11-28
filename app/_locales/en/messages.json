@@ -4,7 +4,7 @@
     "description": "The name of the application"
   },
   "appDescription": {
-    "message": "BallBoy gets you the latest cricket scores from India domestic matches",
+    "message": "BallBoy gets you the latest cricket scores from India International & domestic matches.",
     "description": "The description of the application"
   }
 }
