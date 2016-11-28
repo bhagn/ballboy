@@ -168,6 +168,52 @@ body {
         .item-header {
           font-size: $increment * 3;
           color: $primary-alt;
+
+          small {
+            color: $secondary;
+          }
+        }
+
+        .innings-info {
+          padding: $increment;
+          margin: $increment/2 auto;
+          color: $secondary-alt;
+          background: $primary;
+
+          .innings-detail {
+            margin: $increment auto auto;
+
+            .innings-detail-header {
+              padding: $increment;
+              background: $primary-alt;
+              display: flex;
+              justify-content: space-around;
+
+              span:nth-child(1) {
+                width: 75px;
+              }
+
+              span {
+                min-width: 175px/4;
+              }
+            }
+
+            .innings-detail-body {
+              padding: $increment;
+              display: flex;
+              justify-content: space-around;
+              background: $secondary-alt;
+              color: $primary;
+
+              span:nth-child(1) {
+                width: 75px;
+              }
+
+              span {
+                min-width: 175px/4;
+              }
+            }
+          }
         }
       }
     }

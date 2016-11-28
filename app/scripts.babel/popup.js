@@ -12,11 +12,43 @@
 
   var liveMatchTemplate = `
     <div class="live-match item" ng-class="{done: ctrl.data.status === 'C'}">
-      <div class="item-header" ng-bind="ctrl.data.desc"></div>
+      <div class="item-header">
+        <span ng-bind="ctrl.data.desc"></span>
+        <small ng-bind="ctrl.data.matchInfo"></small>
+      </div>
       <div class="result" ng-if="ctrl.data.status === 'C'" ng-bind="::ctrl.data.result.text">
       </div>
       <div ng-if="ctrl.data.status !== 'C'" class="scorecard">
-        N/A
+        <div class="item-tag" ng-if="ctrl.data.data.summary" ng-bind="ctrl.data.data.summary"></div>
+
+        <div ng-repeat="innings in ctrl.data.data.innings">
+          <div class="innings-info">
+            <div>
+              <span ng-bind="innings.name"></span>
+              <span class="pull-right">
+                <span ng-bind="innings.runs"></span>/<span ng-bind="innings.wkts"></span>
+              </span>
+            </div>
+            <div class="innings-detail" ng-if="$last">
+              <div class="innings-detail-header">
+                <span>Batsman</span>
+                <span>R</span>
+                <span>B</span>
+                <span>4s</span>
+                <span>6s</span>
+                <span>SR</span>
+              </div>
+              <div class="innings-detail-body" ng-repeat="batsman in innings.batsmen">
+                <span ng-bind="::batsman.name"></span>
+                <span ng-bind="::batsman.r"></span>
+                <span ng-bind="::batsman.b"></span>
+                <span ng-bind="::batsman.f"></span>
+                <span ng-bind="::batsman.s"></span>
+                <span ng-bind="::batsman.sr"></span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   `;
@@ -104,7 +136,13 @@
       });
 
       chrome.storage.sync.get('live', data => {
-        $scope.liveMatches = data.live;
+        $scope.liveMatches = data.live.sort((a, b) => {
+          if (b.status > a.status) {
+            return 1
+          }
+          return -1;
+        });
+
         if (!$scope.menu.active && data.live.length > 0) {
           $scope.menu.active = 'live';
         }

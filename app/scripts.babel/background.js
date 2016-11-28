@@ -37,8 +37,8 @@
 
   function parseAndSetLiveScore(score) {
     score = JSON.parse(score.replace('onScoring(', '').replace(');', ''));
-    chrome.storage.sync.get('live', data => {
-      var matches = data.live;
+    chrome.storage.sync.get('live', live => {
+      var matches = live.live;
       var toEdit = _.findIndex(matches, {id: score.matchId.name});
 
       if (toEdit === -1) {
@@ -46,9 +46,54 @@
         return updateLiveScores();
       }
 
+      matches[toEdit].matchInfo = score.matchInfo.description;
+
       var data = {
         summary: score.matchInfo.matchSummary,
       };
+
+      var innings = [];
+      for (var i=0; i < score.innings.length; i++) {
+        var teamInfo = score.matchInfo.teams[score.matchInfo.battingOrder[i]];
+        var info = {
+          name: teamInfo.team.abbreviation || teamInfo.team.fullName,
+          pColor: '#' + teamInfo.team.primaryColor,
+          sColor: '#' + teamInfo.team.secondaryColor,
+          runs: score.innings[i].scorecard.runs,
+          wkts: score.innings[i].scorecard.wkts,
+          overs: score.innings[i].scorecard.overProgress
+        };
+
+        if (i === score.innings.length - 1 && score.matchInfo.matchState === 'L') {
+          // if live
+          var liveBatsmen = _.filter(score.innings[i].scorecard.battingStats, b => {
+            return _.isUndefined(b.mod);
+          });
+
+          info.batsmen = [];
+
+          info.batsmen.push({
+            name: _.find(teamInfo.players, { id: liveBatsmen[0].playerId }).shortName,
+            r: liveBatsmen[0].r,
+            b: liveBatsmen[0].b,
+            f: liveBatsmen[0]['4s'],
+            s: liveBatsmen[0]['6s'],
+            sr: liveBatsmen[0].sr
+          });
+          info.batsmen.push({
+            name: _.find(teamInfo.players, { id: liveBatsmen[1].playerId }).shortName,
+            r: liveBatsmen[1].r,
+            b: liveBatsmen[1].b,
+            f: liveBatsmen[1]['4s'],
+            s: liveBatsmen[1]['6s'],
+            sr: liveBatsmen[1].sr
+          });
+        }
+
+        innings.push(info);
+      }
+
+      data.innings = innings;
 
       var notes = [];
       _.forEach(score.matchInfo.additionalInfo, (value, key) => {
@@ -64,6 +109,7 @@
         return b.id - a.id;
       });
       data.notes = notes[0].value;
+      console.log(score.matchInfo.additionalInfo);
 
       if (matches[toEdit].data && matches[toEdit].data.notes != data.notes) {
         chrome.notifications.create(score.matchId.name, {
@@ -72,7 +118,16 @@
           message: data.notes,
           iconUrl: 'images/icon-48.png'
         });
+        console.log('notification for', score.matchInfo.tournamentLabel + '(' + score.matchInfo.description + ')');
       }
+
+      matches[toEdit].data = data;
+
+      chrome.storage.sync.set({ live: matches }, data => {
+        if (port) {
+          port.postMessage('reload-view');
+        }
+      });
 
     });
   }
@@ -114,7 +169,7 @@
       console.log('Adding job to refresh every 15 minutes');
 
       chrome.alarms.create('liveScores', {
-        periodInMinutes: 15
+        periodInMinutes: 2
       });
 
       chrome.alarms.onAlarm.addListener(alarm => {
@@ -299,7 +354,7 @@
 
   chrome.runtime.onConnect.addListener(p => {
     port = p;
-    console.log('connected...');
+    console.log('connected to popup...');
     port.onMessage.addListener(msg => {
       console.log('got msg', msg);
       if (msg === 'reload-db') {
@@ -307,6 +362,7 @@
       }
     });
     port.onDisconnect.addListener(() => {
+      console.log('disconnected from popup...');
       port = null;
     });
   });
