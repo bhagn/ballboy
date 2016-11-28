@@ -35,8 +35,8 @@
     xhr.send();
   }
 
-  function parseAndSetLiveScore(score) {
-    score = JSON.parse(score.replace('onScoring(', '').replace(');', ''));
+  function parseAndSetLiveScore(_score) {
+    var score = JSON.parse(_score.replace('onScoring(', '').replace(');', ''));
     chrome.storage.sync.get('live', live => {
       var matches = live.live;
       var toEdit = _.findIndex(matches, {id: score.matchId.name});
@@ -72,28 +72,23 @@
 
           info.batsmen = [];
 
-          info.batsmen.push({
-            name: _.find(teamInfo.players, { id: liveBatsmen[0].playerId }).shortName,
-            r: liveBatsmen[0].r,
-            b: liveBatsmen[0].b,
-            f: liveBatsmen[0]['4s'],
-            s: liveBatsmen[0]['6s'],
-            sr: liveBatsmen[0].sr
-          });
-          info.batsmen.push({
-            name: _.find(teamInfo.players, { id: liveBatsmen[1].playerId }).shortName,
-            r: liveBatsmen[1].r,
-            b: liveBatsmen[1].b,
-            f: liveBatsmen[1]['4s'],
-            s: liveBatsmen[1]['6s'],
-            sr: liveBatsmen[1].sr
-          });
+          for (var k=0; k < liveBatsmen.length; k++) {
+            info.batsmen.push({
+              name: _.find(teamInfo.players, { id: liveBatsmen[k].playerId }).shortName,
+              r: liveBatsmen[k].r,
+              b: liveBatsmen[k].b,
+              f: liveBatsmen[k]['4s'],
+              s: liveBatsmen[k]['6s'],
+              sr: liveBatsmen[k].sr
+            });
+          }
         }
 
         innings.push(info);
       }
 
       data.innings = innings;
+      var lastInnings = _.last(score.innings);
 
       var notes = [];
       _.forEach(score.matchInfo.additionalInfo, (value, key) => {
@@ -109,18 +104,39 @@
         return b.id - a.id;
       });
       data.notes = notes[0].value;
-      console.log(score.matchInfo.additionalInfo);
+      console.log(score);
 
       if (matches[toEdit].data && matches[toEdit].data.notes != data.notes) {
-        chrome.notifications.create(score.matchId.name, {
+        chrome.notifications.create(score.matchId.name + '-notes', {
           type: 'basic',
           title: score.matchInfo.tournamentLabel + '(' + score.matchInfo.description + ')',
           message: data.notes,
           iconUrl: 'images/icon-48.png'
         });
-        console.log('notification for', score.matchInfo.tournamentLabel + '(' + score.matchInfo.description + ')');
+        console.log('notes notification for', score.matchInfo.tournamentLabel + '(' + score.matchInfo.description + ')');
       }
 
+      if (matches[toEdit].data && matches[toEdit].data.fow.length != _.last(score.innings).scorecard.fow.length) {
+        console.log('wkt has fallen!');
+        var wkt = _.last(_.last(score.innings).scorecard.fow);
+        var team = score.matchInfo.battingOrder[score.innings.length - 1];
+        var player = _.find(score.matchInfo.teams[team].players, { id: wkt.playerId }).fullName;
+        var how = _.find(lastInnings.scorecard.battingStats, { playerId: wkt.playerId });
+        var howText = how.mod.text;
+        var footer = how.r + ' (b: ' + how.b + ', 4s: ' + how['4s'] + ', 6s: ' + how['6s'] + ')';
+
+        chrome.notifications.create(score.matchId.name + '-wkt', {
+          type: 'basic',
+          title: player + ' got out!',
+          message: howText,
+          contextMessage: footer,
+          iconUrl: 'images/icon-48.png'
+        });
+
+        console.log('wkt notification for', score.matchInfo.tournamentLabel + '(' + score.matchInfo.description + ')');
+      }
+
+      data.fow = lastInnings.scorecard.fow;
       matches[toEdit].data = data;
 
       chrome.storage.sync.set({ live: matches }, data => {
