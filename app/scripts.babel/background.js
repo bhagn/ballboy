@@ -75,6 +75,12 @@
             return _.isUndefined(b.mod);
           });
 
+          if (liveBatsmen.length === 0) {
+            liveBatsmen = _.filter(score.innings[i].scorecard.battingStats, b => {
+              return b.mod && b.mod.text === 'Not Out';
+            });
+          }
+
           info.batsmen = [];
 
           for (var k=0; k < liveBatsmen.length; k++) {
