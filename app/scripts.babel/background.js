@@ -51,6 +51,15 @@
         return updateLiveScores();
       }
 
+      matches[toEdit].status = score.matchInfo.matchState;
+
+      if (matches[toEdit].status === 'C') {
+        matches[toEdit].result = {
+          code: score.matchInfo.matchStatus.outcome,
+          text: score.matchInfo.matchStatus.text
+        };
+      }
+
       matches[toEdit].matchInfo = score.matchInfo.description;
 
       var data = {
@@ -178,13 +187,6 @@
     });
   }
 
-  function onAlarm(alarm) {
-    console.log('Alarm triggered', alarm);
-    if (alarm.name == 'liveScores') {
-      getLiveScores();
-    }
-  }
-
   function setUpAlarms() {
     chrome.storage.sync.get('live', data => {
       if (data.live.length === 0) {
@@ -195,13 +197,9 @@
       console.log('Adding job to refresh every 15 minutes');
 
       chrome.alarms.clear('liveScores', () => {
-        chrome.alarms.onAlarm.removeListener(onAlarm);
-
         chrome.alarms.create('liveScores', {
           periodInMinutes: 2
         });
-
-        chrome.alarms.onAlarm.addListener(onAlarm);
       });
     });
   }
@@ -377,8 +375,15 @@
   }
 
   function onRefresh(alarm) {
-    console.log('Alarm to refresh: ', alarm);
-    init();
+    if (alarm.name === 'refresh') {
+      console.log('Alarm to refresh: ', alarm);
+      return init();
+    }
+
+    if (alarm.name == 'liveScores') {
+      console.log('Alarm to get live scores', alarm);
+      return getLiveScores();
+    }
   }
 
   function init() {
