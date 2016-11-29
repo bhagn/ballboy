@@ -16,8 +16,8 @@
         <span ng-bind="ctrl.data.desc"></span>
         <small ng-bind="ctrl.data.matchInfo"></small>
       </div>
-      <div class="result" ng-if="ctrl.data.status === 'C'" ng-bind="::ctrl.data.result.text">
-      </div>
+      <div class="result" ng-if="ctrl.data.status === 'U'" ng-bind="::ctrl.data.extra"></div>
+      <div class="result" ng-if="ctrl.data.status === 'C'" ng-bind="::ctrl.data.result.text"></div>
       <div ng-if="ctrl.data.status !== 'C'" class="scorecard">
         <div class="item-tag" ng-if="ctrl.data.data.summary" ng-bind="ctrl.data.data.summary"></div>
 
@@ -137,8 +137,8 @@
 
       chrome.storage.sync.get('live', data => {
         $scope.liveMatches = data.live.sort((a, b) => {
-          if (b.status > a.status) {
-            return 1
+          if (moment(b.start) < moment(a.start)) {
+            return 1;
           }
           return -1;
         });

@@ -36,7 +36,12 @@
   }
 
   function parseAndSetLiveScore(_score) {
-    var score = JSON.parse(_score.replace('onScoring(', '').replace(');', ''));
+    try {
+      var score = JSON.parse(_score.replace('onScoring(', '').replace(');', ''));
+    } catch(e) {
+      console.error('failed to parse score', e);
+      return updateLiveScores();
+    }
     chrome.storage.sync.get('live', live => {
       var matches = live.live;
       var toEdit = _.findIndex(matches, {id: score.matchId.name});
@@ -93,17 +98,12 @@
       var notes = [];
       _.forEach(score.matchInfo.additionalInfo, (value, key) => {
         if (_.startsWith(key, 'notes')) {
-          notes.push({
-            id: parseInt(key.replace('notes.', '').replace(/\./g, '')),
-            value: value
-          });
+          notes.push(key);
         }
       });
 
-      notes = notes.sort(function(a, b) {
-        return b.id - a.id;
-      });
-      data.notes = notes[0].value;
+      notes = notes.sort();
+      data.notes = score.matchInfo.additionalInfo[_.last(notes)];
       console.log(score);
 
       if (matches[toEdit].data && matches[toEdit].data.notes != data.notes) {
@@ -143,6 +143,7 @@
         if (port) {
           port.postMessage('reload-view');
         }
+        updateLiveScores();
       });
 
     });
@@ -155,7 +156,7 @@
 
     var match = liveScores.pop();
 
-    if (match.status === 'L') {
+    if (match.status === 'L' || (match.status === 'U' && moment() > moment(match.start))) {
       xhrGET(match.url, parseAndSetLiveScore);
     } else {
       console.log('Match not live: ', match.id, 'skipping refresh');
@@ -171,6 +172,13 @@
     });
   }
 
+  function onAlarm(alarm) {
+    console.log('Alarm triggered', alarm);
+    if (alarm.name == 'liveScores') {
+      getLiveScores();
+    }
+  }
+
   function setUpAlarms() {
     chrome.storage.sync.get('live', data => {
       if (data.live.length === 0) {
@@ -180,15 +188,14 @@
 
       console.log('Adding job to refresh every 15 minutes');
 
-      chrome.alarms.create('liveScores', {
-        periodInMinutes: 2
-      });
+      chrome.alarms.clear('liveScores', () => {
+        chrome.alarms.onAlarm.removeListener(onAlarm);
 
-      chrome.alarms.onAlarm.addListener(alarm => {
-        console.log('Alarm triggered', alarm);
-        if (alarm.name == 'liveScores') {
-          getLiveScores();
-        }
+        chrome.alarms.create('liveScores', {
+          periodInMinutes: 2
+        });
+
+        chrome.alarms.onAlarm.addListener(onAlarm);
       });
     });
   }
@@ -215,7 +222,13 @@
       var endDate = moment(match.matchDate).add(noOfDays, 'days').endOf('date').add(2, 'days');
       if (startDate <= today && today <= endDate) {
         console.debug('adding live match', match);
-        var liveMatch = { id: match.matchId.name, status: match.matchState, desc: team1 + ' vs ' + team2 };
+        var liveMatch = {
+          id: match.matchId.name,
+          status: match.matchState,
+          desc: team1 + ' vs ' + team2,
+          extra: match.description,
+          start: match.matchDate
+        };
 
         if (isIntMatch) {
           liveMatch.url = URL.INT_LIVE.replace('seriesId', seriesId).replace('matchId', match.matchId.name);
@@ -230,16 +243,23 @@
           };
         }
 
-        live.push(liveMatch);
-        console.log('LIVE: ', liveMatch);
+        if (_.findIndex(live, {id: liveMatch.id}) === -1) {
+          live.push(liveMatch);
+          console.log('LIVE: ', liveMatch);
+        }
       }
     });
   }
 
   function onSeriesDetailsLoad(detail) {
-    detail = detail.replace('onMatchSchedule(', '').replace(');', '');
-    detail = JSON.parse(detail);
-    console.debug('loading details', detail.tournamentId.tournamentLabel);
+    try {
+      detail = detail.replace('onMatchSchedule(', '').replace(');', '');
+      detail = JSON.parse(detail);
+      console.debug('loading details', detail.tournamentId.tournamentLabel);
+    } catch(e) {
+      console.error('failed to parse detail', e);
+      getSeriesDetails();
+    }
 
     chrome.storage.sync.get('series', data => {
       var series = data.series;
@@ -350,11 +370,17 @@
     xhrGET(URL.INDEX, onSeriesLoad);
   }
 
+  function onRefresh(alarm) {
+    console.log('Alarm to refresh: ', alarm);
+    init();
+  }
+
   function init() {
     series = [];
     teams = [];
     live = [];
     favTeams = [];
+
     chrome.alarms.clearAll(getSeries);
   }
 
@@ -364,6 +390,7 @@
   });
 
   chrome.runtime.onStartup.addListener(() => {
+    console.log('onStartup');
     init();
   });
 
@@ -381,6 +408,12 @@
       port = null;
     });
   });
+
+  chrome.alarms.create('refresh', {
+    when: moment().add(6, 'hours').toDate().getTime(),
+    periodInMinutes: 360
+  });
+  chrome.alarms.onAlarm.addListener(onRefresh);
 
 
 })();
