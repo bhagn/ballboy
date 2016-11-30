@@ -347,18 +347,26 @@
     div.innerHTML = homePage;
     series = [];
 
-    var intSeries = div.querySelector('[data-season]').getAttribute('data-season').split(', ');
-    intSeries.forEach(s => {
-      series.push( { name: s, url: URL.INT_SCHEDULE.replace('seriesId', s), int: true });
-    });
+    var intSeries = div.querySelector('[data-season]');
 
-    var domSeries =  div.querySelector('[data-tab="domestic"]').getAttribute('data-int-other-season');
-    domSeries += ', ' + div.querySelector('[data-tab="domestic"]').getAttribute('data-dom-season');
-    domSeries = domSeries.split(', ');
+    if (intSeries) {
+      intSeries = intSeries.getAttribute('data-season').split(', ');
+      intSeries.forEach(s => {
+        series.push( { name: s, url: URL.INT_SCHEDULE.replace('seriesId', s), int: true });
+      });
+    }
 
-    domSeries.forEach(s => {
-      series.push( { name: s, url: URL.SCHEDULE.replace('seriesId', s)});
-    });
+    var domSeries = div.querySelector('[data-tab="domestic"]');
+    if (domSeries) {
+      domSeries = domSeries.getAttribute('data-int-other-season');
+
+      domSeries += ', ' + div.querySelector('[data-tab="domestic"]').getAttribute('data-dom-season');
+      domSeries = domSeries.split(', ');
+
+      domSeries.forEach(s => {
+        series.push( { name: s, url: URL.SCHEDULE.replace('seriesId', s)});
+      });
+    }
 
     chrome.storage.sync.set({
       series: series
