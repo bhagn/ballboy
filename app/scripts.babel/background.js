@@ -45,6 +45,7 @@
     chrome.storage.sync.get('live', live => {
       var matches = live.live;
       var toEdit = _.findIndex(matches, {id: score.matchId.name});
+      var notified = false;
 
       if (toEdit === -1) {
         console.warn('couldn\'t find the live match', score.matchId.name, matches);
@@ -128,10 +129,12 @@
           message: data.notes,
           iconUrl: 'images/icon-48.png'
         });
+
+        notified = true;
         console.log('notes notification for', score.matchInfo.tournamentLabel + '(' + score.matchInfo.description + ')');
       }
 
-      if (matches[toEdit].data && matches[toEdit].data.fow.length != _.last(score.innings).scorecard.fow.length) {
+      if (!notified && lastInnings.scorecard.fow.length !== 0 && matches[toEdit].data && matches[toEdit].data.fow.length != lastInnings.scorecard.fow.length) {
         console.log('wkt has fallen!');
         var wkt = _.last(_.last(score.innings).scorecard.fow);
         var team = score.matchInfo.battingOrder[score.innings.length - 1];
