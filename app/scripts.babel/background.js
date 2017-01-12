@@ -274,7 +274,7 @@
 
       if (toEdit !== -1) {
         var start = moment(detail.schedule[0].matchDate);
-        var end = moment(_.last(detail.schedule).matchDate);
+        var end = moment(_.last(detail.schedule).matchDate).add(5, 'days');
         var today = moment();
 
         series[toEdit].label = detail.tournamentId.tournamentLabel || _.startCase(detail.tournamentId.name);
@@ -359,11 +359,12 @@
       });
     }
 
-    var domSeries = div.querySelector('[data-tab="domestic"]');
-    if (domSeries) {
-      domSeries = domSeries.getAttribute('data-int-other-season');
+    var domSeries = div.querySelector('[data-tab="domestic"]') || div.querySelector('[data-tab="international other"]');
 
-      domSeries += ', ' + div.querySelector('[data-tab="domestic"]').getAttribute('data-dom-season');
+    if (domSeries) {
+      domSeries = domSeries.getAttribute('data-int-other-season') || '';
+
+      domSeries += ', ' + div.querySelector('[data-tab="international other"]').getAttribute('data-dom-season') || '';
       domSeries = domSeries.split(', ');
 
       domSeries.forEach(s => {
@@ -386,6 +387,7 @@
   }
 
   function onRefresh(alarm) {
+    console.log('Alarm triggered', alarm);
     if (alarm.name === 'refresh') {
       console.log('Alarm to refresh: ', alarm);
       return init();
@@ -432,7 +434,6 @@
   });
 
   chrome.alarms.create('refresh', {
-    when: moment().add(6, 'hours').toDate().getTime(),
     periodInMinutes: 360
   });
   chrome.alarms.onAlarm.addListener(onRefresh);
