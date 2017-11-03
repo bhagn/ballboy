@@ -174,7 +174,8 @@
 
     var match = liveScores.pop();
 
-    if (match.status === 'L' || (match.status === 'U' && moment() > moment(match.start))) {
+    if (match.status === 'L' ||
+        (match.status === 'U' && moment() > moment(match.start) && moment().diff(moment(match.start), 'days') < 6)) {
       xhrGET(match.url, parseAndSetLiveScore);
     } else {
       console.log('Match not live: ', match.id, 'skipping refresh');
@@ -350,22 +351,23 @@
     div.innerHTML = homePage;
     series = [];
 
-    var intSeries = div.querySelector('[data-season]');
+    // var intSeries = div.querySelector('[data-season]');
 
-    if (intSeries) {
-      intSeries = intSeries.getAttribute('data-season').split(', ');
-      intSeries.forEach(s => {
-        series.push( { name: s, url: URL.INT_SCHEDULE.replace('seriesId', s), int: true });
-      });
-    }
+    // if (intSeries) {
+    //   intSeries = intSeries.getAttribute('data-season').split(', ');
+    //   intSeries.forEach(s => {
+    //     series.push( { name: s, url: URL.INT_SCHEDULE.replace('seriesId', s), int: true });
+    //   });
+    // }
 
-    var domSeries = div.querySelector('[data-tab="domestic"]') || div.querySelector('[data-tab="international other"]');
+    var domSeries = div.querySelector('[data-dom-season]'); // || div.querySelector('[data-tab="international other"]');
 
     if (domSeries) {
-      domSeries = domSeries.getAttribute('data-int-other-season') || '';
+      domSeries = domSeries.getAttribute('data-dom-season') || '';
 
-      domSeries += ', ' + div.querySelector('[data-tab="international other"]').getAttribute('data-dom-season') || '';
+      // domSeries += ', ' + div.querySelector('[data-tab="international other"]').getAttribute('data-dom-season') || '';
       domSeries = domSeries.split(', ');
+      console.log(domSeries);
 
       domSeries.forEach(s => {
         series.push( { name: s, url: URL.SCHEDULE.replace('seriesId', s)});

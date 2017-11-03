@@ -119,7 +119,8 @@
       });
 
       chrome.storage.sync.get('teams', data => {
-        $scope.teams = _.groupBy(data.teams, t => {
+        var teams = _.uniqBy(data.teams, 'name');
+        $scope.teams = _.groupBy(teams, t => {
           return t.int ? 'International' : 'Domestic';
         });
         $scope.$digest();
